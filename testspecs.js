@@ -4,6 +4,7 @@ const Register = require('./register.js');
 
  beforeEach(function() {
     register = new Register();
+    let tempRegister = {};
   });
 
 describe('`cash register functionality`', function() {
@@ -64,21 +65,42 @@ describe('`cash register functionality`', function() {
    })
 
    it("removes money from cash register to make change, given a dollar amount, and returns a string with correct change", function(){
-    register.money[20] = 10;
-    register.money[10] = 10;
-    register.money[5] = 10;
+    register.money[20] = 0;
+    register.money[10] = 1;
+    register.money[5] = 2;
+    register.money[2] = 0;
+    register.money[1] = 0;
+    register.change(15);
+    expect(register.show()).to.eql('$5 0x1 0x2 1x5 0x10 0x20');
+    register.money[20] = 0;
+    register.money[10] = 1;
+    register.money[5] = 2;
+    register.money[2] = 0;
+    register.money[1] = 8;
+    register.change(28);
+    expect(register.show()).to.eql('$0 0x1 0x2 0x5 0x10 0x20');
+    register.money[20] = 0;
+    register.money[10] = 2;
+    register.money[5] = 2;
     register.money[2] = 10;
-    register.money[1] = 10;
-    expect(register.change(17)).to.eql("0x1 1x2 1x5 1x10 0x20");
-    expect(register.show()).to.eql('$363 10x1 9x2 9x5 9x10 10x20');
+    register.money[1] = 0;
+    register.change(27);
+    expect(register.show()).to.eql('$23 0x1 9x2 1x5 0x10 0x20');
     register.money[20] = 1;
     register.money[10] = 0;
     register.money[5] = 3;
-    register.money[2] = 1;
-    register.money[1] = 1;
-    expect(register.change(28)).to.eql("1x1 1x2 1x5 0x10 1x20");
+    register.money[2] = 4;
+    register.money[1] = 0;
+    register.change(11);
+    expect(register.show()).to.eql('$32 0x1 1x2 2x5 0x10 1x20');
+    register.money[20] = 1;
+    register.money[10] = 0;
+    register.money[5] = 2;
+    register.money[2] = 3;
+    register.money[1] = 0;
+    register.change(26);
     expect(register.show()).to.eql('$10 0x1 0x2 2x5 0x10 0x20');
-   })
+  })
 
   it("throws an error if change cannot be made", function(){
     register.money[20] = 1;
@@ -86,6 +108,12 @@ describe('`cash register functionality`', function() {
     register.money[5] = 0;
     register.money[2] = 1;
     register.money[1] = 0;
+    register.change.bind(register, 21).should.throw("sorry, not enough bills in register to make change");
+    register.money[20] = 0;
+    register.money[10] = 0;
+    register.money[5] = 1;
+    register.money[2] = 1;
+    register.money[1] = 1;
     register.change.bind(register, 21).should.throw("sorry, not enough bills in register to make change")
    })
 

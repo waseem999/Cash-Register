@@ -53,37 +53,80 @@ Register.prototype.show = function(){
   return totalString
 }
 
-//this function makes change by taking money from the register to make change, and returning a string with the correct change.  If change cannot be made, it throws an error.
-Register.prototype.change = function(num){
-  let changeObject = {
+//some variables I will need in my change functions
+let changeObject = {
       20 : 0,
       10: 0,
       5: 0,
       2: 0,
       1: 0
   };
-  let tempRegister = Object.assign({}, this.money);
-  let registerKeys = Object.keys(tempRegister);
-  for (let i = registerKeys.length - 1 ; i >= 0; i--){
+
+let registerKeys = Object.keys(changeObject).map(function(val){ 
+  return parseInt(val)
+})
+let tempRegister = {};
+
+//this function is called if there is a remainder after the initial iteration
+ Register.prototype.stepBack = function(num, lastkey, iterate){
+  let iterator = iterate || lastkey;
+  let bill = registerKeys[iterator]
+  if (iterator > 4){
+    return false
+  }
+  else if (changeObject[bill] > 0){
+    //putting the last bill that did not result in a correct combo back in register 
+    tempRegister[bill]++;
+    changeObject[bill]--;
+    num += bill;
+    //checking combinations of a lower denomination 
+    let lower = registerKeys[iterator - 1];
+    for (let i = lastkey; i >= 0; i--){
+     while (tempRegister[lower] > 0 && (num - lower) >= 0){
+      tempRegister[lower]--;
+      changeObject[lower]++;
+      lastkey = i;
+      num = num - lower;
+      }
+    }
+  }
+  else {
+    iterator++
+  }
+  if (num){
+    //recursively call stepBack, keeping track of which bills were incorrect with the iterator
+    return this.stepBack(num, lastkey, iterator)
+  }
+  return true;
+}
+
+//this function makes change by taking money from the register to make change, and returning a string with the correct change.  If change cannot be made, it throws an error.
+Register.prototype.change = function(num){
+  let bool = true;
+  let lastkey;
+  tempRegister = Object.assign({}, this.money);
+  for (let i = 4; i >= 0; i--){
     let key = registerKeys[i];
     if (key <= num && num - key >= 0){
       while (tempRegister[key] > 0 && num - key >= 0){
         tempRegister[key]--;
         changeObject[key]++;
+        lastkey = i;
         num = num - key;
       }
     }
   }
   if (num){
+    lastkey ? lastkey = lastkey : lastkey = 0;
+    let iterator = 0;
+      bool = this.stepBack(num, lastkey, iterator);
+  }
+  if (!bool){
     throw new Error ("sorry, not enough bills in register to make change")
   }
   else {
     this.money = Object.assign({}, tempRegister);
-    let changeString;
-    for (let key in changeObject){
-      changeString ? changeString += " " + changeObject[key] + "x" + key : changeString = changeObject[key] + "x" + key; 
-    }
-  return changeString;
+    return true;
   }
 }
 
