@@ -100,7 +100,7 @@ let tempRegister = {};
   return true;
 }
 
-//this function makes change by taking money from the register to make change, and returning a string with the correct change.  If change cannot be made, it throws an error.
+//this function makes change by taking money from the register to make change.  If change cannot be made, it throws an error.
 Register.prototype.change = function(num){
   let bool = true;
   let lastkey;
